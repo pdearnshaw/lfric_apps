@@ -41,6 +41,9 @@ program lfric_atm
   type(modeldb_type) :: modeldb
 
   character(*), parameter :: application_name = "lfric_atm"
+#ifdef MCT
+  character(*), parameter :: cpl_component_name = "lfric"
+#endif
   character(:), allocatable :: filename
   integer(tik)              :: timing_handle_global
   type(namelist_type), pointer :: io_nml
