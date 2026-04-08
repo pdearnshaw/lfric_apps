@@ -16,7 +16,8 @@
 
 program lfric_atm
 
-  use cli_mod,                only: get_initial_filename
+  use cli_mod,                only: parse_command_line
+  use constants_mod,          only: l_def, str_max_filename
 #ifdef MCT
   use coupler_mod,            only: set_cpl_name
 #endif
@@ -26,32 +27,34 @@ program lfric_atm
   use driver_counter_mod,     only: init_counters, final_counters
   use driver_log_mod,         only: init_logger, final_logger
   use driver_time_mod,        only: init_time, final_time
-  use driver_timer_mod,       only: init_timers, final_timers
   use gungho_mod,             only: gungho_required_namelists
   use driver_modeldb_mod,     only: modeldb_type
   use gungho_driver_mod,      only: initialise, step, finalise
   use lfric_mpi_mod,          only: global_mpi
-  use namelist_mod,           only: namelist_type
-
-  use timing_mod,             only: init_timing, start_timing, stop_timing, final_timing, tik, LPROF
+  use timing_mod,             only: init_timing, final_timing, &
+                                    start_timing, stop_timing, &
+                                    tik, LPROF
 
   implicit none
 
   ! Model run working data set
   type(modeldb_type) :: modeldb
 
-  character(*), parameter :: application_name = "lfric_atm"
+  character(*), parameter      :: application_name = "lfric_atm"
 #ifdef MCT
-  character(*), parameter :: cpl_component_name = "lfric"
+  character(*), parameter      :: cpl_component_name = "lfric"
 #endif
-  character(:), allocatable :: filename
-  integer(tik)              :: timing_handle_global
-  type(namelist_type), pointer :: io_nml
-  logical :: lsubroutine_timers
+  character(:), allocatable    :: filename
+  integer(tik)                 :: id_setup
+
+  character(str_max_filename) :: timer_output_path
+  logical(l_def)              :: subroutine_timers
+
+  call parse_command_line( filename )
+
   modeldb%mpi => global_mpi
 
-  call modeldb%configuration%initialise( application_name, &
-                                         table_len=10 )
+  call modeldb%config%initialise( application_name )
   call modeldb%values%initialise( 'values', 5 )
 
   ! Create the depository, prognostics and diagnostics field collections
@@ -76,37 +79,39 @@ program lfric_atm
   call set_cpl_name(modeldb, cpl_component_name)
 #endif
   call init_comm( application_name, modeldb )
-  call get_initial_filename( filename )
-  call init_config( filename, gungho_required_namelists, &
-                    modeldb%configuration )
-  call init_logger( modeldb%mpi%get_comm(), application_name )
-  call init_timers( application_name )
 
-  io_nml => modeldb%configuration%get_namelist('io')
-  call io_nml%get_value('subroutine_timers', lsubroutine_timers)
-  call init_timing( modeldb%mpi%get_comm(), lsubroutine_timers )
-  nullify( io_nml )
-  if ( LPROF ) call start_timing( timing_handle_global, '__lfric_atm__ ')
+  call init_config( filename, gungho_required_namelists, &
+                    config=modeldb%config )
+
+  call init_logger( modeldb%mpi%get_comm(), application_name )
+
+  subroutine_timers = modeldb%config%io%subroutine_timers()
+  timer_output_path = modeldb%config%io%timer_output_path()
+
+  call init_timing( modeldb%mpi%get_comm(), subroutine_timers, &
+                    application_name, timer_output_path )
+
+  if ( LPROF ) call start_timing( id_setup, '__setup__ ')
 
   call init_collections()
   call init_time( modeldb )
   call init_counters( application_name )
+  call initialise( application_name, modeldb )
+
   deallocate( filename )
 
-  call initialise( application_name, modeldb )
+  if ( LPROF ) call stop_timing( id_setup, '__setup__' )
+
   do while (modeldb%clock%tick())
     call step( modeldb )
   end do
+
   call finalise( application_name, modeldb )
 
   call final_counters( application_name )
   call final_time( modeldb )
   call final_collections()
-
-  if ( LPROF ) call stop_timing( timing_handle_global )
-  call final_timing()
-
-  call final_timers( application_name )
+  call final_timing( application_name )
   call final_logger( application_name )
   call final_config()
   call final_comm( modeldb )
