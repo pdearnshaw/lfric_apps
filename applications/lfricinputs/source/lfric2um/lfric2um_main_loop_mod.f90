@@ -61,6 +61,7 @@ real(kind=real64), allocatable :: global_field_array(:)
 real(kind=real64), allocatable :: q_top_buffer(:,:)      ! Buffer arrays for
 real(kind=real64), allocatable :: theta_top_buffer(:,:)  ! computing Exner pressure
 real(kind=real64), allocatable :: exner_top_buffer(:,:)  ! above the top level
+real(kind=real64), allocatable :: real_field_buffer(:,:)
 logical :: l_conv_p_exner
 
 if (local_rank == 0) then
