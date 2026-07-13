@@ -25,9 +25,12 @@ subroutine um2lfric_post_process_fields(field, stashcode)
 use log_mod,                         only: log_event,      &
                                            LOG_LEVEL_INFO, &
                                            log_scratch_space
-! um2lfric modules
-use lfricinp_um_grid_mod,            only: um_grid
+
+
 ! lfricinputs modules
+use lfricinp_add_bottom_level_mod,   only: lfricinp_add_bottom_level
+use lfricinp_regrid_options_mod,     only: winds_on_w3
+use lfricinp_reorder_snow_field_mod, only: lfricinp_reorder_snow_field
 use lfricinp_stashmaster_mod,        only: stashcode_area_cf,    &
                                            stashcode_v,          &
                                            stashcode_exner,      &
@@ -39,6 +42,7 @@ use lfricinp_reorder_snow_field_mod, only: lfricinp_reorder_snow_field
 use lfricinp_add_bottom_level_mod,   only: lfricinp_add_bottom_level
 use lfricinp_remove_top_level_mod,   only: lfricinp_remove_top_level
 use lfricinp_regrid_options_mod,     only: winds_on_w3
+use lfricinp_um_grid_mod,            only: um_grid
 use lfricinp_um_parameters_mod,      only: um_rmdi
 
 implicit none
