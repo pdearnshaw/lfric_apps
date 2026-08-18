@@ -74,6 +74,9 @@ module process_recv_fields_2d_mod
    type( integer_field_type ), pointer        :: ocn_cpl_point_ptr
    type(mesh_type), pointer :: mesh
 
+   ! The following only works if the model is coupled to ocean and/or seaice
+   if (l_couple_ocean .OR. l_couple_seaice) then
+
    ! Get the pointers to the fields
    call dcpl_rcv%get_field("lf_ocn_sst", sea_surf_temp_ptr)
    call dcpl_rcv%get_field("lf_icefrc", sea_ice_fraction_ptr)
@@ -149,6 +152,8 @@ module process_recv_fields_2d_mod
                                         therm_cond_sice_snow      &
                                       )                           &
               )   ! Close invoke.
+
+  end if
 
   end subroutine process_recv_fields_2d
 

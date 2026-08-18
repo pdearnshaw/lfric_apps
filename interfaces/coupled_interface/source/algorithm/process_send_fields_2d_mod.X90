@@ -128,12 +128,12 @@ module process_send_fields_2d_mod
         ! Solar heat flux
         call invoke(setval_X(fld, dep_fld), &
                     inc_a_times_X( r_acc_step, fld ), &
-		    inc_X_times_Y(fld, r_ocean_fraction) )
+                    inc_X_times_Y(fld, r_ocean_fraction) )
       case ("lf_heatflux")
         ! Non-solar heat flux
         call invoke(setval_X(fld, dep_fld), &
                     inc_a_times_X( r_acc_step, fld ), &
-		    inc_X_times_Y(fld, r_ocean_fraction) )
+                    inc_X_times_Y(fld, r_ocean_fraction) )
       case ("lf_train")
         !large scale rain
         call invoke(setval_X(fld, dep_fld), &
